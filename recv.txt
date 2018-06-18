@@ -1,0 +1,194 @@
+#include "recv.h"
+#include "Arduino.h"
+
+volatile int throttle =1000 ,roll_inp = 1500, pitch_inp = 1500, yaw_inp = 1500, arm = 1000, channel_6 = 1000;
+
+volatile unsigned long timer1,timer2,timer3,timer4,timer5,timer6;
+
+volatile bool flag1,flag2,flag3,flag4,flag5,flag6;
+
+void interrupt_yaw()
+{
+
+  if(flag1 == 0)
+  {
+    timer1 = micros();
+    flag1 = 1;
+  }
+  else
+  {
+    int dt = micros() - timer1;
+    if(dt>2100)
+      {
+        timer1 = micros();
+        
+      }
+    else
+    {
+      flag1 = 0;
+      yaw_inp = (dt - 1500)*yaw_coeff;
+    }    
+  }
+  
+}
+
+void interrupt_pitch()
+{
+  
+  if(flag2 == 0)
+  {
+    timer2 = micros();
+    flag2 = 1;
+  }
+  else
+  {
+    int dt = micros() - timer2;
+    if(dt>2100)
+      {
+        timer2 = micros();
+      }
+    else
+    {
+      flag2 = 0;
+      pitch_inp = (dt - 1500)*pitch_coeff;
+    }
+
+  }
+ 
+}
+
+
+void interrupt_throttle()
+{
+ 
+  if(flag3 == 0)
+  {
+    timer3 = micros();
+    flag3 = 1;
+    
+  }
+  else
+  {
+    int dt = micros() - timer3;
+    if(micros() - timer3>2100)
+      {
+        timer3 = micros();
+      }
+    else
+    {
+      flag3 = 0;
+      throttle = micros() - timer3;
+    }
+
+  }
+
+}
+
+void interrupt_roll()
+{
+  
+  if(flag4 == 0)
+  {
+    timer4 = micros();
+    flag4 = 1;
+  }
+  else
+  {
+    int dt = micros() - timer4;
+    if(dt>2100)
+      {
+        timer4 = micros();
+      }
+    else
+    {
+      flag4 = 0;
+      roll_inp = (dt - 1500)*roll_coeff;
+    }
+
+  }
+
+}
+
+void interrupt_arm()
+{
+  
+  if(flag5 == 0)
+  {
+    timer5 = micros();
+    flag5 = 1;
+  }
+  else
+  {
+    int dt = micros() - timer5;
+    if(dt>2100)
+      {
+        timer5 = micros();
+      }
+    else
+    {
+      flag5 = 0;
+      arm = dt;
+    }
+
+  }
+
+}
+
+void interrupt_channel6()
+{
+
+  if(flag6 == 0)
+  {
+    timer6 = micros();
+    flag6 = 1;
+  }
+  else
+  {
+    int dt = micros() - timer6;
+    if(dt>2100)
+      {
+        timer6 = micros();
+      }
+    else
+    {
+      flag6 = 0;
+      channel_6 = dt;
+    }
+  
+  }
+
+}
+
+void recv_init()
+{
+  pinMode(RECV_CHANNEL_1,INPUT_PULLUP);
+  pinMode(RECV_CHANNEL_2,INPUT_PULLUP);
+  pinMode(RECV_CHANNEL_3,INPUT_PULLUP);
+  pinMode(RECV_CHANNEL_4,INPUT_PULLUP);
+  pinMode(RECV_CHANNEL_5,INPUT_PULLUP);
+  pinMode(RECV_CHANNEL_6,INPUT_PULLUP);
+
+ attachInterrupt(digitalPinToInterrupt(RECV_CHANNEL_1), interrupt_yaw, CHANGE);
+ attachInterrupt(digitalPinToInterrupt(RECV_CHANNEL_2), interrupt_pitch, CHANGE);
+ attachInterrupt(digitalPinToInterrupt(RECV_CHANNEL_3), interrupt_throttle, CHANGE);
+ attachInterrupt(digitalPinToInterrupt(RECV_CHANNEL_4), interrupt_roll, CHANGE);
+ attachInterrupt(digitalPinToInterrupt(RECV_CHANNEL_5), interrupt_arm, CHANGE);
+ attachInterrupt(digitalPinToInterrupt(RECV_CHANNEL_6), interrupt_channel6, CHANGE);
+}
+
+void print_recv()
+{
+ Serial.print(" ARM : ");
+ Serial.print(arm);
+ Serial.print(" THROTTLE : ");
+ Serial.print(throttle);
+ Serial.print(" ROLL : ");
+ Serial.print(roll_inp);
+ Serial.print(" PITCH  : ");
+ Serial.print(pitch_inp);
+ Serial.print(" YAW : ");
+ Serial.print(yaw_inp);
+ Serial.print(" CHANNEL 6 : ");
+ Serial.println(channel_6);
+
+}
